@@ -16,7 +16,11 @@ kernelspec:
 The marine heatwaves are anomalous warm water over the ocean. 
 To detect the warm ocean water, sea surface temperature (SST) is usually used to define if there is any marine heatwave event. 
 
+
+```{note}
 The following example is following the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9)
+```
+
 
 ```{code-cell} ipython3
 import warnings
