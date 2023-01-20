@@ -6,9 +6,9 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.14.4
 kernelspec:
-  display_name: Python [conda env:boto3] *
+  display_name: Python [conda env:boto3-jupyterbook]
   language: python
-  name: conda-env-boto3-py
+  name: conda-env-boto3-jupyterbook-py
 ---
 
 # How to detect marine heatwave based on observational dataset
@@ -71,10 +71,6 @@ ds_mon_anom = (ds_mon_crop.groupby('time.month')-ds_mon_climo).compute()
 ```{code-cell} ipython3
 ds_mon_anom.sst
 ```
-
-:::{important}
-Unlike the other application of MHW, the threshold here consider a 3 month window for the center month's threshold value.
-:::
 
 ```{code-cell} ipython3
 ########## Functions ######### 
