@@ -3,6 +3,7 @@ numpy
 xarray
 dask
 netcdf4
+h5netcdf
 pydap
 scipy
 matplotlib
