@@ -6,21 +6,18 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.14.4
 kernelspec:
-  display_name: python
+  display_name: coast
   language: python
-  name: python
+  name: python3
 ---
 
 # How to detect marine heatwave based on observational dataset
 
 The marine heatwaves are anomalous warm water over the ocean. 
-To detect the warm ocean water, sea surface temperature (SST) is usually used to define if there is any marine heatwave event. 
+To detect the warm ocean water, sea surface temperature (SST) is usually used to define if there is any marine heatwave event.
+In this notebook, we demonstrate how to use the [NOAA OISST v2 High resolution dataset](https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html)  
 
-
-```{note}
 The following example is following the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9)
-```
-
 
 ```{code-cell} ipython3
 import warnings
@@ -28,13 +25,13 @@ import datetime
 import intake
 import xarray as xr
 import numpy as np
-from dask.distributed import Client
+# from dask.distributed import Client
 ```
 
 ```{code-cell} ipython3
-warnings.simplefilter("ignore")
-client = Client(processes=False)
-client
+# warnings.simplefilter("ignore")
+# client = Client(processes=False)
+# client
 ```
 
 ```{code-cell} ipython3
@@ -52,11 +49,11 @@ opendap_mon_url = "https://psl.noaa.gov/thredds/dodsC/Datasets/noaa.oisst.v2.hig
 ```
 
 ```{code-cell} ipython3
-ds_mon = xr.open_dataset(opendap_mon_url, chunks={'time':12,'lon':-1,'lat':-1})
+ds_mon = xr.open_dataset(opendap_mon_url, engine='pydap', chunks={'time':12,'lon':-1,'lat':-1})
 ```
 
 ```{code-cell} ipython3
-climo_start_yr = 1991             # determine the climatology/linear trend start year
+climo_start_yr = 2010             # determine the climatology/linear trend start year
 climo_end_yr = 2020               # determine the climatology/linear trend end year
 
 ds_mon_crop = ds_mon.where((ds_mon['time.year']>=climo_start_yr)&
@@ -121,8 +118,4 @@ da_mhw = ds_mon_anom.sst.where(ds_mon_anom.sst.groupby('time.month')>da_mon_quan
 
 ```{code-cell} ipython3
 da_mhw.isel(time=slice(0,12)).plot(col='time',vmin=0,vmax=3)
-```
-
-```{code-cell} ipython3
-
 ```
