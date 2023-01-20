@@ -4,5 +4,4 @@
 format: jb-book
 root: intro
 chapters:
-- file: notebooks
-- file: markdown
+- file: mhw_observation
