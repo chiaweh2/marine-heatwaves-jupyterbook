@@ -25,7 +25,6 @@ The following example is following the paper [Jacox et al., 2022](http://doi.org
 ```{code-cell} ipython3
 import warnings
 import datetime
-import intake
 import xarray as xr
 import numpy as np
 from dask.distributed import Client
