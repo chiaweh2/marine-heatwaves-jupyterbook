@@ -6,9 +6,9 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.14.4
 kernelspec:
-  display_name: Python [conda env:boto3-jupyterbook]
+  display_name: python
   language: python
-  name: conda-env-boto3-jupyterbook-py
+  name: python
 ---
 
 # How to detect marine heatwave based on observational dataset
