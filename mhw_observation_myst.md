@@ -146,7 +146,7 @@ All these tasks are now executed in the background with distrbuted server assign
 ## Determine the SST threshold based on the anomaly
 Normally, the monthly threshold can be calculated using a oneliner if the threshold is only based on the same month (e.g. January threshold is determined by all January SST anomaly).
 ```{code-cell} ipython3
-ds_mon_anom.sst.groupby('time.month').quantile(0.95,dim='time')` 
+ds_mon_anom.sst.groupby('time.month').quantile(0.95,dim='time')
 ```
 
 However, based on the research, the threshold is determined based on a three month window with the center month being the threhold month one need to determined (e.g. January threshold is determined by all December, January, Feburary SST anomaly). 
