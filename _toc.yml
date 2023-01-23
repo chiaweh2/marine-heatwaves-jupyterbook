@@ -4,4 +4,4 @@
 format: jb-book
 root: intro
 chapters:
-- file: mhw_observation
+- file: mhw_observation_myst
