@@ -43,44 +43,9 @@ The module imported to the python kernel is shown below
 ```{code-cell} ipython3
 import warnings
 import datetime
-import intake
 import xarray as xr
 import numpy as np
 ```
-But for the binder/jupyternotebook to work, these are the list of required packages
-```{note}
-- numpy
-- xarray
-- dask
-- netcdf4
-- h5netcdf
-- pydap
-- scipy
-- matplotlib
-- intake
-- intake-thredds
-```
-Some of the packages are used in the backend of the imported packaged shown above.
-
-
-### Utilize intake for thredds
-The thredds catalog can be viewed with the intake and intake-thredds module. 
-This is not actually needed for downloading the data since PSL data server also provide the [OPeNDAP](https://www.earthdata.nasa.gov/engage/open-data-services-and-software/api/opendap) approach. 
-Here, we are just demostrating a great way to generate a list of file names that can be seen in the thredds catalog.
-```{code-cell} ipython3
-cat_url = 'https://psl.noaa.gov/thredds/catalog/Datasets/noaa.oisst.v2.highres/catalog.xml'
-catalog = intake.open_thredds_cat(cat_url, name='noaa-oisst')
-catalog
-```
-
-```{code-cell} ipython3
-list(catalog)[-10:]
-```
-````{margin}
-```{tip}
-For more information, [intake-thredds readthedoc](https://intake-thredds.readthedocs.io/en/latest/tutorials/index.html) shows how to access data using dask from intake
-```
-````
 
 ### Lazy loading the dataset through OPeNDAP
 With the power of [Xarray](https://docs.xarray.dev/en/stable/) and [Dask](https://www.dask.org), we are able to load the data lazily (only loading the meta data and coordinates information) and peek at data's dimension and availability on our local machine.
