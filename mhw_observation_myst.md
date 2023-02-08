@@ -24,6 +24,12 @@ To detect the warm ocean water, sea surface temperature (SST) is usually used to
 - Determine the SST threshold based on the anomaly
 - Identify the marine heatwaves based on threshold 
 
++++
+```{note}
+The following example is following the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9). 
+```
+
+
 ## Extract the data from the PSL OPeNDAP server
 In this notebook, we demonstrate how to use the [NOAA OISST v2 High resolution dataset](https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html) to show the observed marine heatwaves.
 The dataset is currently hosted on [NOAA Physical Sciences Laboratory](https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html).
@@ -34,11 +40,8 @@ To explore more gridded datasets that are hosted at NOAA PSL, here is a useful [
 ```
 ````
 
-```{note}
-The following example is following the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9). 
-```
 
-### Python modules
+### Python packages
 The module imported to the python kernel is shown below
 ```{code-cell} ipython3
 import warnings
@@ -47,6 +50,14 @@ import xarray as xr
 import numpy as np
 ```
 
+```{code-cell} ipython3
+warnings.simplefilter("ignore")
+```
+```{tip}
+This line of code is not affecting the execution but just removing some of the warning output that might clutter your notebook. 
+However, do pay attentions to some of the warning since it will indicate some deprecation of function or arg/kwarg for future use.
+```
+(lazyLoading)=
 ### Lazy loading the dataset through OPeNDAP
 With the power of [Xarray](https://docs.xarray.dev/en/stable/) and [Dask](https://www.dask.org), we are able to load the data lazily (only loading the meta data and coordinates information) and peek at data's dimension and availability on our local machine.
 The actual data (SST values at each grid point in this case) will only be downloaded from the PSL server when further data manipulation (subsetting and aggregation like calculating mean) is needed.
