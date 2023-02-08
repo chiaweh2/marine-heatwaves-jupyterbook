@@ -5,3 +5,4 @@ format: jb-book
 root: intro
 chapters:
 - file: mhw_observation_myst
+- file: mhw_forecast_nmme
