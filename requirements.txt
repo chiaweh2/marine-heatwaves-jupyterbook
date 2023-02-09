@@ -3,5 +3,5 @@ xarray
 dask
 pydap
 scipy
-intake
-intake-thredds
+matplotlib
+cartopy
