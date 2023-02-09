@@ -14,21 +14,21 @@ kernelspec:
 # Marine Heatwaves forecasting using NMME (North American Multi-Model Ensemble)
 
 ## Predicting marine heatwaves
-Using the NMME (North American Multi-Model Ensemble), [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9) demostrate the possibility of predicting the marine heatwaves under monthly time scale with the lead time up to a year. 
-The [marine heatwaves portal](https://psl.noaa.gov/marine-heatwaves/) forecast hosted at NOAA/PSL webiste is based on the calculatione show on this page.
+Using the NMME (North American Multi-Model Ensemble), [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9) demonstrate the possibility of predicting the marine heatwaves under a monthly time scale with the lead time up to a year. 
+The [marine heatwaves portal](https://psl.noaa.gov/marine-heatwaves/) forecast hosted at NOAA/PSL website is based on the calculation show in this notebook.
 
 ### Goals in the notes 
 - [Lazy loading](lazyLoading) the NMME model data from [IRI/LDEO Climate Data Library](http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/)
-- Calculate the ensemble mean climatology for specific model based on hindcast
-- Calculate the anomaly of forecast
-- Calculate the threshold based on SST anomaly with three month window for each initial time and associated lead time.
-- Calculate the marine heatwave from the forecast anomaly based on the determined threshold
+- Calculate the ensemble mean climatology for each model based on hindcast
+- Calculate the SST anomaly in the forecast
+- Calculate the threshold based on the SST anomaly
+- Calculate the marine heatwave in the forecast
 - Show result
 
 +++
 
 ```{note}
-The following example is following the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9). 
+The following example is based on the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9). 
 ```
 
 ## Extract the data from the IRI/LDEO Climate Data Library OPeNDAP server
@@ -36,9 +36,9 @@ In this notebook, we demonstrate how to use the [NMME model](https://www.cpc.nce
 The dataset is currently hosted on [IRI/LDEO Climate Data Library](http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/).
 
 ```{tip}
-The OPeNDAP server on the [IRI/LDEO Climate Data Library](http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/) also has data extraction limit. 
-For solving some of the limit issue, there are some great discussion on this [GitHub issue](https://github.com/pangeo-data/pangeo/issues/767).
-To summarized, user sometime will need to play a bit on the chunk size to find the optimal download scheme.
+The OPeNDAP server on the [IRI/LDEO Climate Data Library](http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/) also has a data extraction limit. 
+For solving some of the limit issues, there are some great discussions on this [GitHub issue](https://github.com/pangeo-data/pangeo/issues/767).
+To summarize, user sometime will need to play a bit on the chunk size to find the optimal download scheme.
 ```
 
 
@@ -56,15 +56,15 @@ from dask.diagnostics import ProgressBar
 warnings.simplefilter("ignore")
 ```
 ```{tip}
-This line of code is not affecting the execution but just removing some of the warning output that might clutter your notebook. 
-However, do pay attention to some of the warning since it will indicate some deprecation of function and arg/kwarg for future use.
+This line of code is not affecting the execution but just removing some warning outputs that might clutter your notebook. 
+However, do pay attention to some of the warnings since they will indicate some deprecation of function and arg/kwarg in future software updates.
 ```
 
 ## Lazy loading the NMME model data from IRI/LDEO Climate Data Library
-Like in the previous notebook, we request the meta data from the OPeNDAP server to quickly check the data structure.
-There are four models that provide forecast till current and hindcast at the moment of generating this notes.
-Here, we only request one model `GFDL-SPEAR` for demostration. 
-However, for a better prediction, it is always better to have an ensemble of models with each model has its multiple runs. 
+Like in the previous notebook, we request the metadata from the OPeNDAP server to quickly check the data structure.
+Four models provide forecasts till the current and hindcast at the time of generating this notebook.
+Here, we only request one model `GFDL-SPEAR` for demonstration. 
+However, for a better prediction, it is always better to have an ensemble of models with each model having its multiple runs. 
 
 ```{code-cell} ipython3
 #### The opendap access
@@ -73,7 +73,7 @@ forecast_list = ['http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.%s/.FORE
 
 hindcast_list = ['http://iridl.ldeo.columbia.edu/SOURCES/.Models/.NMME/.%s/.HINDCAST/.MONTHLY/.sst/dods'%model for model in model_list] 
 ```
-The code generate a list of URL to query with the OPeNDAP server for both hindcast and forecast.
+The code generates a list of URLs to query with the OPeNDAP server for both hindcast and forecast.
 With the URL generated, we can now send the query with `xr.open_dataset()`
 
 ```{code-cell} ipython3
@@ -89,18 +89,18 @@ dict_model_forecast = {}
 for nmodel,link in enumerate(forecast_list):
     dict_model_forecast[model_list[nmodel]] = xr.open_dataset(link, engine='pydap',chunks={'M':1,'L':1,'S':1},decode_times=False)
 ```
-Notice the `decode_times` is set to `False` due to the time unit is 'months since 1960-01-01' in the NMME dataset which is not following the [cf-convention](https://cfconventions.org/cf-conventions/cf-conventions.html#time-coordinate) of month and year should not be used in the time unit.
+Notice the `decode_times` is set to `False` due to the time unit being 'months since 1960-01-01' in the NMME dataset which is not following the [cf-convention](https://cfconventions.org/cf-conventions/cf-conventions.html#time-coordinate) of month and year should not be used in the time unit.
 Therefore, `xr.open_dataset()` cannot decode the time coordinate correctly when reading the data.
 
 ```{important}
-The `chunks` keyward argument in the `open_dataset` is the key to your processing speed and how one avoid the download limit of OPeNDAP server. 
+The `chunks` keyword argument in the `open_dataset` is the key to your processing speed and how one avoids the download limit of the OPeNDAP server. 
 
-The `engine` keyward argument is set to `'pydap'` to utilize the pydap backend to grab the data on a OPeNDAP server.
+The `engine` keyword argument is set to `'pydap'` to utilize the pydap backend to grab the data on an OPeNDAP server.
 ```
 ```{code-cell} ipython3
 dict_model_hindcast['GFDL-SPEAR'].S
 ```
-Without the decoding, time would show up as number of months (shown above) which is not easy to understand.
+Without the decoding, time would show up as a number of months since the start time (shown above) which is not easy to understand.
 
 ### Decoding the time axis manually
 Since the initial time axis (coordinate = `S`) is not decoded, we need to decode it manually with the help of `cftime` package. 
@@ -129,28 +129,28 @@ To quickly test if we are getting the right dataset, it is easy to generate a qu
 dict_model_hindcast['GFDL-SPEAR'].sst.isel(S=0,M=0,L=0).plot()
 ```
 ```{tip}
-`pcolormesh` method generates map plot which reflects the true value at each grid point. `contour` or `contourf` methods, on the other hand, generate interpolated map plot. It is a personal choice and sometime depend on the purpose of the plots. However, `pcolormesh` method would be the best way to represent the actual value in the dataset and not the interpolated result.
+`pcolormesh` method generates a map plot that reflects the true value at each grid point. `contour` or `contourf` methods, on the other hand, generate interpolated map plots. It is a personal choice and sometimes depends on the purpose of the plots. However, the `pcolormesh` method would be the best way to represent the actual value in the dataset and not the interpolated result.
 ```
 
 
 ## Calculate the ensemble mean climatology 
-The climatology of ensemble mean is determined based on two steps.
+The climatology of the ensemble mean is determined based on two steps.
 
 - Calculate the ensemble mean of all ensemble members in each specific model (in our example `GFDL-SPEAR`)
-- Calculate the monthly climatology from the ensemble mean.  
+- Calculate the monthly climatology from the ensemble mean. 
 
 The calculation is based on the hindcast.
-If there are more than one model, each model will have its own ensemble mean climatology. 
+If there is more than one model, each model will have its ensemble mean climatology. 
 ```{important}
-For demostration in this notebook, the climatology period is only based on one year which does not make sense scientifically but this allow user to quickly play around the data.
-For scientific purpose, the hindcast should at least has 30 years of data to calculate a more meaningful climatology.
+For demonstration in this notebook, the climatology period is only based on one year which does not make sense scientifically but this allows users to quickly play around with the data.
+For the scientific purpose, the hindcast should at least has 30 years of data to calculate a more meaningful climatology.
 ```
 ```{code-cell} ipython3
 # one year of data for climatology (demo purpose only)
 start_year = 2020
 end_year = 2020
 ```
-The code loop throught different models (in this case `GFDL-SPEAR` only), download the desired period, calculate the ensemble mean, and calculate the climatology of the ensemble mean.
+The code loop through different models (in this case `GFDL-SPEAR` only), downloads the desired period, calculate the ensemble mean, and calculate the climatology of the ensemble mean.
 ```{code-cell} ipython3
 for nmodel,model in enumerate(model_list):
     print('-------------')
@@ -173,8 +173,8 @@ for nmodel,model in enumerate(model_list):
     da_ensmean_climo = da_ensmean.groupby('S.month').mean(dim='S')
 ```
 ```{tip}
-Only till this point of the code with `.compute()`, the data is actually downloaded to the local memory and cropped to our desired time period. 
-The `ProgressBar()` method provided by the `dask` package give us a quick way to monitor the progress of the data query in the notebook. 
+Only till this point of the code with `.compute()`, the data is downloaded to the local memory and cropped to our desired period. 
+The `ProgressBar()` method provided by the `dask` package gives us a quick way to monitor the progress of the data query in the notebook. 
 ``` 
 To do a quick peak on the calculated `da_ensmean` and `da_ensmean_climo`
 ```{code-cell} ipython3
@@ -184,17 +184,17 @@ da_ensmean
 ```{code-cell} ipython3
 da_ensmean_climo
 ```
-We can see the `da_ensmean` has one dimension less than the original dataset due to the ensemble member dimension `M` is averaged. 
-The `da_ensmean_climo`, on the other hand, is groupby the month of year.
+We can see the `da_ensmean` has one dimension less than the original dataset due to the ensemble member dimension `M` being averaged. 
+The `da_ensmean_climo`, on the other hand, is grouped by the month of the year.
 
 
 ## Calculate the threshold
-The monthly threshold is based on the hindcast SST anomaly with a three month  window (initial months) for each initial time (centered month) and associated lead time.
+The monthly threshold is based on the hindcast SST anomaly with a three-month window (initial months) for each initial time (centered month) and associated lead time.
 ```{admonition} Example:
-The January (initial month) threshold of lead time = 0.5,1.5,2.5,... month is determined by all ensemble members with December, January, and Feburary SST anomaly at lead time = 0.5,1.5,2.5,... month, respectively. 
+The January (initial month) threshold of lead time = 0.5,1.5,2.5,... month is determined by all ensemble members with December, January, and February SST anomaly at lead time = 0.5,1.5,2.5,... month, respectively. 
 ```
 ### Define functions 
-The function below is performing the three month window on all initial month to find the corresponding monthly threshold at each lead time.
+The function below performs the three-month window on all initial months to find the corresponding monthly threshold at each lead time.
 ```{code-cell} ipython3
 def nmme_3mon_quantile(da_data, mhw_threshold=90.):
     """
@@ -253,7 +253,7 @@ def nmme_3mon_quantile(da_data, mhw_threshold=90.):
 ```
 With the function defined, we just need to calculate the SST anomaly in hindcast.
 There are different methods to determine the quantile. 
-For `xarray.quantile` method (based on `numpy.quantile`), one can choose the desired method based on [NumPy documention](https://numpy.org/doc/stable/reference/generated/numpy.quantile.html#numpy.quantile). 
+For `xarray.quantile` method (based on `numpy.quantile`), one can choose the desired method based on [NumPy documentation](https://numpy.org/doc/stable/reference/generated/numpy.quantile.html#numpy.quantile). 
 ```{code-cell} ipython3
 print('calculating anomaly from hindcast')
 da_anom = (da_model.groupby('S.month') - da_ensmean_climo)
@@ -268,7 +268,7 @@ for m in mhw_threshold:
     ds_mhw_threshold[f'threshold_{m}'] = da_threshold
 ```
 ```{warning}
-The function `nmme_3mon_quantile` is the most time consuming part in the whole calculation. 
+The function `nmme_3mon_quantile` is the most time-consuming part of the whole calculation. 
 It should have a more optimal way to speed up the process. 
 However, this is currently (at the time of creating this notebook) our best solution.
 ```
@@ -296,11 +296,11 @@ da_model_forecast = da_model_forecast.groupby('S.month') - da_ensmean_climo
 ```
 Here, we only pick one initial time to download. 
 For each initial time (`S`), there are 11 lead times (`L`) and 30 ensemble members (`M`) in NMME. 
-The SST anomaly of forecast is determined by subtracting the ensemble mean climatoloty that we calculated based on hindcast. 
+The SST anomaly of the forecast is determined by subtracting the ensemble mean climatology that we calculated based on hindcast. 
 
 
 ## Calculate the marine heatwave 
-Using the forecast SST anomaly and the threshold determined based on hindcast, we can identify the marine heatwave in the forecast.
+Using the forecast SST anomaly and the threshold determined based on the hindcast, we can identify the marine heatwave in the forecast.
 
 ```{code-cell} ipython3
 ds_mhw = xr.Dataset()
@@ -311,9 +311,9 @@ for m in mhw_threshold:
     da_mhw = da_model_forecast.where(da_model_forecast.groupby('S.month')>=ds_mhw_threshold[f'threshold_{m}'])
     ds_mhw[f'mhw_{m}'] = da_mhw
 ```
-The result is stored in the `xarray.Dataset` with variable name `mhw_90`.
-All grid points with SST anomaly higher than the correponsind threshold are original value preserved. 
-The place that has value lower than the threshold will be masked with `NaN`.
+The result is stored in the `xarray.Dataset` with the variable name `mhw_90`.
+All grid points with SST anomaly higher than the corresponding threshold are original values preserved. 
+The place that has a value lower than the threshold will be masked with `NaN`.
 ```{code-cell} ipython3
 da_mhw
 ```
@@ -324,9 +324,9 @@ For the following paragraph, we will start showing some map plot which is used t
 
 ### Define plot format function
 ```{tip}
-When producing mutliple maps for comparison, we often time like to keep maps in the same format. 
-To avoid repetition of format related code, it is good practice to define a function that handle the format. 
-This way the same format will be applied to all plots that calls the function.
+When producing multiple maps for comparison, we often time like to keep maps in the same format. 
+To avoid repetition of format-related code, it is good practice to define a function that handles the format. 
+This way the same format will be applied to all plots that call the function.
 ```
 ```{code-cell} ipython3
 def plot_format(ax,font_size=10):
@@ -420,10 +420,10 @@ ax4.set_title('Forecast Anomaly @ S=Jan2022, L=0.5month', color='black', weight=
 ax4 = plot_format(ax4,font_size=fontsize)
 
 ```
-The first map above shows the threshold for initial time = January and lead time = 0.5month. The second map shows the marine heatwave detected in the NMME SST forecast at initial time = Jan2022 and lead time = 0.5month. The third map shows the original NMME SST forecast at initial time = Jan2022 and lead time = 0.5month.
+The first map above shows the threshold for initial time = January and lead time = 0.5month. The second map shows the marine heatwave detected in the NMME SST forecast at initial time = Jan 2022 and lead time = 0.5month. The third map shows the original NMME SST forecast at initial time = Jan2022 and lead time = 0.5month.
 
-Comparison between first and second map shows that all indentified marine heatwave signal (second map) is all higher than the threshold (first map). 
-Comparison between second and third map shows that all masked out region (second map) are values lower than the threshold (first map).
+Comparison between the first and second maps shows that all identified marine heatwave signals (second map) are all higher than the threshold (first map). 
+Comparison between the second and third maps shows that all masked regions (second map) values lower than the threshold (first map).
 
 
 
@@ -436,18 +436,18 @@ in `ds_mhw`
 ```{code-cell} ipython3
 da_mhw_event = (ds_mhw.isel(S=0,L=11).mhw_90/ds_mhw.isel(S=0,L=11).mhw_90)
 ```
-Here, we picked lead time = 11.5 months to demostrate the result of marine heatwave identification.
+Here, we picked lead time = 11.5 months to demonstrate the result of marine heatwave identification.
 
 ```{code-cell} ipython3
 da_mhw_event.max()
 ```
-As you can see from the result above that the maximum value is now `1` indicating the existence of marine heatwave. 
+As you can see from the result above that the maximum value is now `1` indicating the existence of a marine heatwave.
 
 
 ### Show all enesemble member identified MHW 
-To show how different ensemble member can have very different result, we use the `.plot()` method without much formatting for quick view of the variation between members. 
+To show how different ensemble members can have very different results, we use the `.plot()` method without much formatting for a quick view of the variation between members.
 ```{note}
-This is for specific start time (S = 2022 Jan) and lead time (11.5 months = 2022 Dec)
+The following figures are for a specific start time (S = 2022 Jan) and lead time (11.5 months = 2022 Dec)
 ```
 ```{code-cell} ipython3
 da_landmask = da_model_forecast.isel(L=0,M=0,S=0)/da_model_forecast.isel(L=0,M=0,S=0)
@@ -456,10 +456,10 @@ da_mhw_event.plot(x="X",y='Y',col='M',col_wrap=10,cmap='Greys',levels=np.arange(
 
 
 ### Show total identified MHW in ensemble and associated probability
-By adding all the ensemble members result from above, we know at a specific start time (S = 2022 Jan), lead time (11.5 months = 2022 Dec), and grid point how many ensemble member has predicted the existence of marine heatwaves.
-We subtract this total number of marine heatwave by the total number of ensemble member to produce the probability(%) of marine heatwaves in forecast.
+By summing up all the ensemble members' results in `da_mhw_event`, we know at a specific start time (S = 2022 Jan), lead time (11.5 months = 2022 Dec), and grid point how many ensemble members have predicted the existence of marine heatwaves.
+We divide this total number of marine heatwaves by the total number of ensemble members to produce the probability(%) of marine heatwaves in the forecast.
 ```{important}
-By doing the same calculation for different model which also have its own ensemble members, we can combined the total number of marine heatwaves from across models to get a probability forecast that consider the variations between different models.  
+By doing the same calculation for a different model which also has its ensemble members, we can combine the total number of marine heatwaves from across models to get a probability forecast that considers the variations between different models.  
 ```
 
 ```{code-cell} ipython3
@@ -509,4 +509,4 @@ im = (
 ax3.set_title('Probability @ S=Jan2022, L=11.5month', color='black', weight='bold',size=fontsize)
 ax3 = plot_format(ax3,font_size=fontsize)
 ```
-The first map above shows the total number of marine heatwaves event in all 30 members of members from `GFDL-SPEAR` at initial time = January 2022 and lead time = 11.5month. The second map shows the probability of marine heatwave based on NMME SST forecast at initial time = January 2022 and lead time = 11.5month. The second map is determined by subtracting 30 on the first map.
+The first map above shows the total number of marine heatwave events in all 30 members of members from `GFDL-SPEAR` at initial time = January 2022 and lead time = 11.5month. The second map shows the probability of marine heatwave based on the NMME SST forecast at initial time = January 2022 and lead time = 11.5month. The second map is determined by dividing 30 on the first map.

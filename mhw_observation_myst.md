@@ -26,7 +26,7 @@ To detect warm ocean water, sea surface temperature (SST) is used to define if t
 
 +++
 ```{note}
-The following example is following the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9). 
+The following example is based on the paper [Jacox et al., 2022](http://doi.org/10.1038/s41586-022-04573-9). 
 ```
 
 
