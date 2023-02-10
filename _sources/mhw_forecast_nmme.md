@@ -152,6 +152,9 @@ end_year = 2020
 ```
 The code loop through different models (in this case `GFDL-SPEAR` only), downloads the desired period, calculate the ensemble mean, and calculate the climatology of the ensemble mean.
 ```{code-cell} ipython3
+---
+tags: [output_scroll]
+---
 for nmodel,model in enumerate(model_list):
     print('-------------')
     print(model)
@@ -255,6 +258,9 @@ With the function defined, we just need to calculate the SST anomaly in hindcast
 There are different methods to determine the quantile. 
 For `xarray.quantile` method (based on `numpy.quantile`), one can choose the desired method based on [NumPy documentation](https://numpy.org/doc/stable/reference/generated/numpy.quantile.html#numpy.quantile). 
 ```{code-cell} ipython3
+---
+tags: [output_scroll]
+---
 print('calculating anomaly from hindcast')
 da_anom = (da_model.groupby('S.month') - da_ensmean_climo)
 
@@ -282,6 +288,9 @@ da_threshold
 +++
 ### Load one initial time of forecast anomaly data for demo
 ```{code-cell} ipython3
+---
+tags: [output_scroll]
+---
 for nmodel,model in enumerate(model_list):
     print('-------------')
     print(model)
