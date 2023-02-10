@@ -4,5 +4,3 @@ dask
 pydap
 scipy
 matplotlib
-cartopy
-cftime
